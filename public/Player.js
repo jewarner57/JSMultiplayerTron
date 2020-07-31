@@ -3,7 +3,7 @@
  *    rect, translate, width, height, fill, rotate, cos, sin, ellipse, noStroke, stroke, strokeWeight
  *    keyIsDown, LEFT_ARROW, RIGHT_ARROW, UP_ARROW, DOWN_ARROW, resetMatrix, line, trailScrollX, trailScrollY
  *    collideLineCircle, collideCircleCircle, collideRectCircle, startTime, obstacles, score, timeSurvived, 
- *    collectibles, gameOver, addNotification
+ *    collectibles, gameOver, addNotification, opposingPlayers, random, respawnLocation
  */
 
 class Player {
@@ -31,6 +31,7 @@ class Player {
         this.isAlive = true
         this.isRespawning = false
         this.lives = 3
+        this.isInvulnerable = false;
     }
 
     show() {
@@ -175,15 +176,18 @@ class Player {
 
             //on a collision
             if (hit) {
-                this.speed = 3
+                this.speed /= 3
+                if (this.speed < 3) {
+                    this.speed = 3
+                }
 
                 let random = Math.random()
 
                 if (random > 0.50) {
-                    this.rotation += 90
+                    this.rotation += 150
                 }
                 else {
-                    this.rotation -= 90
+                    this.rotation -= 210
                 }
             }
         }
@@ -211,10 +215,13 @@ class Player {
         this.trailX = trailScrollX
         this.trailY = trailScrollY
 
-        if (this.trail.length > this.trailLength) {
-            this.trail.shift()
+        if (this.isInvulnerable === false) {
+            if (this.trail.length > this.trailLength) {
+                this.trail.shift()
+            }
+
+            this.trail.push({ x: this.trailX, y: this.trailY, px: this.previousTrailX, py: this.previousTrailY })
         }
-        this.trail.push({ x: this.trailX, y: this.trailY, px: this.previousTrailX, py: this.previousTrailY })
     }
 
     //get the x and y speed based on the angle of the bike
@@ -259,23 +266,27 @@ class Player {
     respawn() {
 
         this.lives -= 1
-        if (this.lives > 0) {
+        if (this.lives > -1) {
 
-            scrollX = 0;
-            scrollY = 0;
+            this.isInvulnerable = true
+
+            let spawnPosition = respawnLocation
+
+            scrollX = spawnPosition.x;
+            scrollY = spawnPosition.y;
 
             this.x = width / 2
             this.y = width / 2
 
-            trailScrollX = 0
-            trailScrollY = 0;
+            trailScrollX = spawnPosition.x;
+            trailScrollY = spawnPosition.y;
+
+            this.rotation = random(360)
 
             this.trailX = trailScrollX;
             this.trailY = trailScrollY;
             this.previousTrailX = trailScrollX;
             this.previousTrailY = trailScrollY;
-
-            this.rotation = 0
 
             this.trail = []
 

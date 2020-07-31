@@ -1,16 +1,32 @@
+// Name any p5.js functions we use in `global` so Glitch can recognize them.
+/* global
+ *    rect, translate, width, height, fill, rotate, cos, sin, ellipse, noStroke, stroke, strokeWeight
+ *    keyIsDown, LEFT_ARROW, RIGHT_ARROW, UP_ARROW, DOWN_ARROW, resetMatrix, line, trailScrollX, trailScrollY
+ *    collideLineCircle, collideCircleCircle, collideRectCircle, startTime, obstacles, score, timeSurvived, 
+ *    collectibles, gameOver, addNotification, opposingPlayers, random, spawnLocations
+ */
+
 class OpposingPlayer {
-    constructor(id, bikeX, bikeY, bikeWidth, bikeHeight, bikeRotation, bikeTrail, bikeHue, bikeWheelWidth, bikeWheelHeight, bikeSteeringAngle) {
+    constructor(id, bikeX, bikeY, bikeWidth, bikeHeight, bikeRotation, bikeHue, bikeWheelWidth, bikeWheelHeight, bikeSteeringAngle, isInvulnerable, enemyTrailScrollX, enemyTrailScrollY, trailLength) {
         this.id = id
         this.x = bikeX
         this.y = bikeY
+        this.prevX = bikeX + 1
+        this.prevY = bikeY + 1
         this.width = bikeWidth
         this.height = bikeHeight
         this.rotation = bikeRotation
-        this.trail = bikeTrail
+        this.trail = []
         this.hue = bikeHue
         this.wheelWidth = bikeWheelWidth
         this.wheelHeight = bikeWheelHeight
         this.steeringAngle = bikeSteeringAngle
+        this.isInvulnerable = isInvulnerable
+        this.trailX = enemyTrailScrollX;
+        this.trailY = enemyTrailScrollY;
+        this.previousTrailX = enemyTrailScrollX;
+        this.previousTrailY = enemyTrailScrollY;
+        this.trailLength = trailLength
     }
 
     show() {
@@ -32,16 +48,37 @@ class OpposingPlayer {
         rect(-this.wheelWidth / 2, -this.wheelHeight / 2, this.wheelWidth, this.wheelHeight)
 
         resetMatrix()
+
+        if (!this.isInvulnerable) {
+            if (this.trail.length > this.trailLength) {
+                this.trail.shift()
+            }
+            if (this.trailX != this.previousTrailX || this.trailY != this.previousTrailY) {
+                this.trail.push({ x: this.trailX, y: this.trailY, px: this.previousTrailX, py: this.previousTrailY })
+
+                this.previousTrailX = this.trailX
+                this.previousTrailY = this.trailY
+
+            }
+        }
+        else {
+            this.trail = []
+            this.previousTrailX = this.trailX
+            this.previousTrailY = this.trailY
+        }
+
     }
 
     drawTail() {
         fill(this.hue, 100, 100, 50)
 
-        for (let segment of this.trail) {
-            stroke(this.hue, 100, 100)
-            strokeWeight(5)
-            //get the current position of the line and position relative to the center of the screen 
-            line(width / 2 + segment.x - trailScrollX, height / 2 + segment.y - trailScrollY, width / 2 + segment.px - trailScrollX, height / 2 + segment.py - trailScrollY)
+        if (!this.isInvulnerable) {
+            for (let segment of this.trail) {
+                stroke(this.hue, 100, 100)
+                strokeWeight(5)
+
+                line(width / 2 + segment.x - trailScrollX, height / 2 + segment.y - trailScrollY, width / 2 + segment.px - trailScrollX, height / 2 + segment.py - trailScrollY)
+            }
         }
     }
 }
